@@ -1,5 +1,9 @@
 # blog_neo4j
 
+Osvaldo Hernández Juárez - Matrícula: 385493
+Diego Flores Verdad Grijalva - Matrícula: 385660
+Luis Felipe Domínguez Chávez - Matrícula: 385500
+
 Aplicación en Python con interfaz gráfica (Tkinter) para administrar un blog
 guardado en una base de datos de grafos Neo4j.
 
