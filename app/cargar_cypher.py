@@ -5,7 +5,8 @@ Uso (desde la raiz del repositorio):
     python app/cargar_cypher.py cypher/01_restricciones.cypher cypher/02_datos.cypher
 
 Cada archivo se divide en sentencias por el ';' al final de una linea. Las
-lineas que empiezan con // son comentarios y se ignoran. Las sentencias se
+lineas que empiezan con // son comentarios; el comentario que esta justo
+arriba de una sentencia se muestra como su titulo. Las sentencias se
 ejecutan en orden; de cada una se muestra lo que cambio en la base y, si
 tiene RETURN, sus primeras filas.
 """
@@ -18,20 +19,33 @@ MAX_FILAS = 12
 
 
 def sentencias(ruta):
-    """Regresa las sentencias Cypher de un archivo, sin comentarios."""
-    actual, lista = [], []
+    """Regresa (titulo, cypher) de cada sentencia de un archivo.
+
+    El titulo es la primera linea del comentario que esta justo arriba de
+    la sentencia; si no hay comentario, es la primera linea del Cypher.
+    """
+    lista, actual, comentario = [], [], []
     for linea in Path(ruta).read_text(encoding="utf-8").splitlines():
-        if linea.strip().startswith("//"):
+        limpia = linea.strip()
+        if not actual:
+            if limpia.startswith("//"):
+                comentario.append(limpia.lstrip("/ ").strip())
+                continue
+            if not limpia:
+                comentario = []      # una linea vacia separa el comentario
+                continue
+        elif limpia.startswith("//"):
             continue
         actual.append(linea)
         if linea.rstrip().endswith(";"):
             texto = "\n".join(actual).strip().rstrip(";").strip()
-            if texto:
-                lista.append(texto)
-            actual = []
+            titulo = comentario[0] if comentario else texto.splitlines()[0]
+            lista.append((titulo, texto))
+            actual, comentario = [], []
     resto = "\n".join(actual).strip()
     if resto:
-        lista.append(resto)
+        titulo = comentario[0] if comentario else resto.splitlines()[0]
+        lista.append((titulo, resto))
     return lista
 
 
@@ -46,8 +60,8 @@ def main(archivos):
     for archivo in archivos:
         lista = sentencias(archivo)
         print(f"== {archivo}: {len(lista)} sentencias")
-        for i, cypher in enumerate(lista, 1):
-            primera = cypher.splitlines()[0][:60]
+        for i, (titulo, cypher) in enumerate(lista, 1):
+            primera = titulo[:60]
             registros, resumen, _ = bd.driver.execute_query(
                 cypher, database_=bd.database)
             cambios = {k: v for k, v in resumen.counters.__dict__.items()
