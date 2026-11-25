@@ -1,0 +1,11 @@
+# Configuracion local (cada quien pone su contrasena de Neo4j)
+config.ini
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Archivos de trabajo que no van al repositorio
+_paquetes/
+_reporte_latex/
