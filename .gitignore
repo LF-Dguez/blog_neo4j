@@ -9,3 +9,10 @@ __pycache__/
 # Archivos de trabajo que no van al repositorio
 _paquetes/
 _reporte_latex/
+
+# Archivos que genera XeLaTeX al compilar el reporte
+reporte/*.aux
+reporte/*.log
+reporte/*.out
+reporte/*.toc
+reporte/*.synctex.gz

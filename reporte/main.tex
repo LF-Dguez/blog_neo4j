@@ -1,0 +1,467 @@
+\documentclass[12pt]{article}
+
+% ============================================================
+%  PAQUETES
+% ============================================================
+\usepackage[spanish]{babel}
+
+% ------------------------------------------------------------
+%  TIPOGRAFÍA: Arial en el texto, monoespaciada en el código
+%  IMPORTANTE: este archivo se compila con XeLaTeX o LuaLaTeX,
+%  no con pdfLaTeX. En Overleaf: Menu > Compiler > XeLaTeX.
+%  Si Arial no está instalado se usa Liberation Sans, que tiene
+%  exactamente las mismas métricas y no altera la paginación.
+% ------------------------------------------------------------
+\usepackage{fontspec}
+\IfFontExistsTF{Arial}{%
+  \setmainfont{Arial}%
+  \setsansfont{Arial}%
+}{%
+  \setmainfont{Liberation Sans}%
+  \setsansfont{Liberation Sans}%
+}
+\IfFontExistsTF{Consolas}{%
+  \setmonofont{Consolas}[Scale=MatchLowercase]%
+}{%
+  \setmonofont{Liberation Mono}[Scale=MatchLowercase]%
+}
+
+\usepackage[a4paper, margin=2.5cm]{geometry}
+\usepackage{graphicx}          % Imágenes
+\usepackage{float}             % Anclaje de figuras con [H]
+\usepackage{enumitem}          % Control de listas
+\usepackage{needspace}         % Evita separar un bloque de su captura
+\usepackage{tocloft}           % Ancho de la numeración en el índice
+\setlength{\cftsecnumwidth}{2em}
+\setlength{\cftsubsecnumwidth}{2.8em}
+\usepackage{xcolor}            % Colores
+\usepackage{listings}          % Bloques de código
+\usepackage{fancyhdr}          % Encabezado y pie de página
+\usepackage{titlesec}          % Estilo de títulos de sección
+\usepackage{microtype}         % Mejor justificación / tipografía
+\usepackage{setspace}          % Interlineado
+\onehalfspacing                % Interlineado 1.5 en todo el documento
+\usepackage[font=small, labelfont={bf,color=purple-uach}]{caption}
+\usepackage[hidelinks]{hyperref} % Enlaces e índice clicable
+\usepackage{xurl}
+\urlstyle{same}
+
+\captionsetup{font={small,stretch=1.0}}    % pies de figura a renglón sencillo
+
+\graphicspath{{img/}{./}}
+
+% ============================================================
+%  COLORES
+% ============================================================
+\definecolor{purple-uach}{HTML}{371e49}
+
+% ============================================================
+%  DATOS DE LA TAREA
+% ============================================================
+\newcommand{\alumnoUno}{Osvaldo Hernández Juárez}
+\newcommand{\matriculaUno}{385493}
+\newcommand{\alumnoDos}{Diego Flores Verdad Grijalva}
+\newcommand{\matriculaDos}{385660}
+\newcommand{\alumnoTres}{Luis Felipe Domínguez Chávez}
+\newcommand{\matriculaTres}{385500}
+\newcommand{\materia}{Bases de Datos Avanzadas}
+\newcommand{\docente}{José Saúl De Lira Miramontes}
+\newcommand{\grupoCarrera}{Grupo 5k2}
+\newcommand{\actividad}{Proyecto Final: Aplicación de Base de Datos de Grafos}
+% Versión de la portada, con el salto de renglón donde se ve mejor.
+\newcommand{\actividadPortada}{Proyecto Final:\\ Blog en Neo4j}
+\newcommand{\fechaEntrega}{24 de noviembre de 2026}
+
+\hypersetup{
+    pdftitle={\actividad},
+    pdfauthor={\alumnoUno, \alumnoDos, \alumnoTres},
+    pdfsubject={\materia}
+}
+
+% ============================================================
+%  ESTILO DE TÍTULOS DE SECCIÓN
+% ============================================================
+\titleformat{\section}
+  {\large\bfseries\color{purple-uach}}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalsize\bfseries\color{purple-uach}}{\thesubsection}{1em}{}
+\titlespacing*{\section}{0pt}{2.4ex plus 1ex minus .2ex}{1.2ex plus .2ex}
+
+% ============================================================
+%  PIE DE PÁGINA
+% ============================================================
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancyfoot[R]{\thepage}
+
+% ============================================================
+%  ESTILO DE BLOQUES DE CÓDIGO
+% ============================================================
+\lstdefinelanguage{mongosh}{
+    morekeywords={db,sh,rs,const,let,new,find,findOne,insertOne,insertMany,updateOne,updateMany,deleteOne,deleteMany,countDocuments,aggregate,runCommand,getSiblingDB,createCollection,drop,print,printjson},
+    morestring=[b]",
+    morestring=[b]',
+    morecomment=[l]{//},
+    sensitive=true
+}
+
+\lstdefinestyle{codeStyle}{
+    backgroundcolor=\color{gray!8},
+    commentstyle=\color{purple-uach!70},
+    keywordstyle=\color{purple-uach}\bfseries,
+    stringstyle=\color{teal},
+    basicstyle=\setstretch{1}\ttfamily\footnotesize,
+    breaklines=true,
+    breakatwhitespace=false,
+    frame=single,
+    rulecolor=\color{gray!40},
+    tabsize=2,
+    captionpos=b,
+    aboveskip=1.2ex,
+    belowskip=1.2ex
+}
+\lstset{style=codeStyle, language=mongosh}
+\lstdefinestyle{pyStyle}{style=codeStyle, language=Python, showstringspaces=false, morekeywords={self,None,True,False}}
+\lstdefinestyle{plainStyle}{style=codeStyle, language={}, showstringspaces=false}
+
+
+% ============================================================
+%  CAPTURAS Y PENDIENTES
+% ============================================================
+% \captura{archivo}{pie de figura}{ancho}: si la imagen todavía no está en
+% img/, se muestra un recuadro con el nombre del archivo que falta.
+\newcommand{\captura}[3]{%
+  \begin{figure}[H]
+    \centering
+    \IfFileExists{img/#1}{%
+      \includegraphics[width=#3\linewidth]{#1}%
+    }{%
+      \fbox{\parbox[c][2.5cm][c]{0.8\linewidth}{\centering\small\color{gray}Falta la captura \texttt{img/#1}}}%
+    }
+    \caption{#2}
+  \end{figure}}
+% \pendiente{texto}: aviso visible de algo que falta; quitarlo antes de entregar.
+\newcommand{\pendiente}[1]{%
+  \par\noindent\fcolorbox{purple-uach}{purple-uach!6}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{\small\textbf{Pendiente:} #1}}\par}
+
+\lstdefinelanguage{cypher}{
+    morekeywords={MATCH,OPTIONAL,WHERE,RETURN,CREATE,MERGE,SET,DELETE,DETACH,WITH,UNWIND,AS,ORDER,BY,DESC,ASC,DISTINCT,AND,OR,NOT,IN,EXISTS,COUNT,CONSTRAINT,FOR,REQUIRE,IS,UNIQUE,IF,CALL,YIELD,LIMIT,SHOW},
+    sensitive=true, morecomment=[l]{//}, morestring=[b]", morestring=[b]'}
+\lstdefinestyle{cypherStyle}{style=codeStyle, language=cypher, showstringspaces=false}
+\lstdefinestyle{jsStyle}{style=codeStyle, language=mongosh, showstringspaces=false, morecomment=[s]{/*}{*/}, morestring=[b]`}
+
+\emergencystretch=1.5em
+
+% ============================================================
+\begin{document}
+
+% ---------------- PORTADA ----------------
+\begin{titlepage}
+\singlespacing
+\centering
+\noindent
+\begin{minipage}[c]{0.5\linewidth}
+    \raggedright
+    \includegraphics[height=4.5cm]{logo-uach.png}
+\end{minipage}%
+\begin{minipage}[c]{0.5\linewidth}
+    \raggedleft
+    \includegraphics[height=4.5cm]{logo-fing.png}
+\end{minipage}\\[1.2cm]
+{\Large \textbf{Universidad Autónoma de Chihuahua}}\\[0.2cm]
+{\large Facultad de Ingeniería}\\[0.2cm]
+{\normalsize \grupoCarrera}\\[2cm]
+
+{\color{purple-uach}\rule{\linewidth}{0.6mm}}\\[0.5cm]
+{\huge \bfseries \linespread{1.25}\selectfont \actividadPortada\par}\vspace{0.5cm}
+{\color{purple-uach}\rule{\linewidth}{0.6mm}}\\[1.5cm]
+
+{\Large \materia}\\[0.3cm]
+{\large Docente: \docente}
+
+\vfill
+
+\begin{flushright}
+    \large
+    \textbf{\alumnoUno}\\
+    Matrícula: \matriculaUno\\[0.4cm]
+    \textbf{\alumnoDos}\\
+    Matrícula: \matriculaDos\\[0.4cm]
+    \textbf{\alumnoTres}\\
+    Matrícula: \matriculaTres
+\end{flushright}
+
+\vspace{1cm}
+{\large \fechaEntrega}
+
+\end{titlepage}
+
+
+% Codigo de un archivo del repositorio; si todavia no existe, se avisa.
+\newcommand{\codigo}[2]{%
+  \IfFileExists{#2}{\lstinputlisting[style=#1]{#2}}{\pendiente{falta el archivo \texttt{\detokenize{#2}}.}}}
+
+% ---------------- ÍNDICE ----------------
+\tableofcontents
+\newpage
+
+% ============================================================
+%  CAPTURAS: 01-19 Luis Felipe, 20-39 Osvaldo, 40-59 Diego.
+% ============================================================
+
+% ============================================================
+\section{Introducción}
+
+En las actividades anteriores se trabajó con MongoDB, una base de datos de documentos. En este proyecto se usó una base de datos de grafos, Neo4j, en la que los datos se guardan como nodos y las relaciones entre ellos se almacenan explícitamente. Se desarrolló una aplicación en Python con interfaz gráfica que administra un blog: usuarios, artículos, comentarios, tags y categorías, con las relaciones del modelo indicado en la actividad. La aplicación permite crear, consultar, modificar y eliminar cada tipo de nodo, y realizar consultas que recorren el grafo.
+
+El código de la aplicación y los archivos Cypher se encuentran en el repositorio \url{https://github.com/LF-Dguez/blog_neo4j}.
+
+% ============================================================
+\section{Objetivo}
+
+Desarrollar una aplicación de base de datos de grafos.
+
+% ============================================================
+\section{Entorno de trabajo}
+
+El proyecto se realizó en Windows 11 con Neo4j Desktop 2 y una instancia local de Neo4j 2026.10, a la que la aplicación se conecta por el protocolo Bolt en \texttt{localhost:7687}. La aplicación se escribió en Python 3.14 con el driver oficial de Neo4j (paquete \texttt{neo4j}) y la interfaz con Tkinter, que viene incluido en Python.
+
+% ============================================================
+\section{Modelo de datos del blog}
+
+El modelo de la actividad tiene cinco tipos de entidad. En Neo4j cada una es una etiqueta de nodo, y cada relación del diagrama es un tipo de relación con dirección:
+
+\begin{lstlisting}[style=plainStyle]
+(:User {id, name, email})
+(:Article {id, title, date, text})
+(:Comment {id, name, url, text, date})
+(:Tag {id, name, url})
+(:Category {id, name, url})
+
+(:User)-[:WROTE]->(:Article)            1 a N
+(:User)-[:POSTED]->(:Comment)           1 a N
+(:Article)-[:HAS_COMMENT]->(:Comment)   1 a N
+(:Article)-[:TAGGED_WITH]->(:Tag)       N a N
+(:Article)-[:IN_CATEGORY]->(:Category)  N a N
+\end{lstlisting}
+
+Las decisiones principales del modelo fueron las siguientes:
+
+\begin{itemize}[itemsep=2pt, topsep=4pt]
+    \item Cada nodo tiene una propiedad \texttt{id} generada con \texttt{randomUUID()}. La aplicación busca, modifica y elimina siempre por ese identificador.
+    \item Las relaciones N a N no necesitan una tabla intermedia como en una base relacional: un artículo se conecta directamente con cada uno de sus tags y categorías.
+    \item En el diagrama, los comentarios tienen las propiedades name y url. Se interpretaron como el título corto del comentario y su enlace permanente, y se agregaron text, con el contenido, y date. La url la genera la aplicación a partir del título del artículo.
+    \item Las fechas de artículos y comentarios se guardan con el tipo \texttt{date} de Neo4j.
+    \item Al eliminar, un usuario que tiene artículos o comentarios no se puede borrar; un artículo se elimina junto con sus comentarios; un tag, una categoría o un comentario se eliminan junto con sus relaciones.
+\end{itemize}
+
+% ============================================================
+\section{Estructura del proyecto}
+
+\begin{lstlisting}[style=plainStyle]
+blog_neo4j/
+  app/main.py            ventana principal con una pestaña por tipo de nodo
+  app/conexion.py        conexión con Neo4j (lee config.ini)
+  app/ui_comun.py        componentes de interfaz comunes
+  app/cargar_cypher.py   ejecuta archivos .cypher
+  app/usuarios.py        pestaña Usuarios
+  app/articulos.py       pestaña Artículos
+  app/comentarios.py     pestaña Comentarios
+  app/tags.py            pestaña Tags
+  app/categorias.py      pestaña Categorías
+  app/consultas.py       pestaña Consultas
+  cypher/01_restricciones.cypher ... 06_consultas.cypher
+  config.ejemplo.ini     plantilla de config.ini
+\end{lstlisting}
+
+Los datos de conexión (URI, usuario y contraseña) se leen de \texttt{config.ini}, que no se sube al repositorio; en él solo está la plantilla \texttt{config.ejemplo.ini}.
+
+% ============================================================
+\section{Restricciones y datos iniciales}
+
+\subsection{Instancia de Neo4j}
+
+\captura{01-neo4j-desktop.png}{Instancia de Neo4j en Neo4j Desktop.}{1.0}
+
+\subsection{Restricciones de unicidad}
+
+Cada \texttt{id} es único, igual que el email de un usuario y el nombre de un tag o de una categoría. Una restricción \texttt{UNIQUE} también crea un índice, así que las búsquedas por esas propiedades son rápidas.
+
+\codigo{cypherStyle}{../cypher/01_restricciones.cypher}
+
+\subsection{Datos iniciales}
+
+El archivo \texttt{02\_datos.cypher} borra los nodos del blog y vuelve a crear 5 usuarios, 4 categorías, 8 tags, 8 artículos y 14 comentarios con todas sus relaciones. Se usa \texttt{UNWIND} para crear varios nodos a partir de una lista en una sola sentencia.
+
+\codigo{cypherStyle}{../cypher/02_datos.cypher}
+
+\subsection{Cargador de archivos Cypher}
+
+\texttt{cargar\_cypher.py} ejecuta en orden las sentencias de uno o varios archivos \texttt{.cypher}. De cada una muestra su título (el comentario que tiene arriba), lo que cambió en la base y, si tiene \texttt{RETURN}, sus primeras filas. Al final cuenta los nodos y las relaciones del blog.
+
+\begin{lstlisting}[style=plainStyle]
+python app/cargar_cypher.py cypher/01_restricciones.cypher cypher/02_datos.cypher
+\end{lstlisting}
+
+\captura{02-cargar-datos.png}{Creación de las restricciones y carga de los datos iniciales.}{1.0}
+
+Se crearon las 8 restricciones y los 39 nodos, con 65 relaciones en total.
+
+\captura{03-restricciones.png}{Restricciones de la base de datos en Neo4j Desktop.}{1.0}
+
+\captura{04-grafo-completo.png}{Grafo completo del blog.}{1.0}
+
+% ============================================================
+\section{Conexión y ventana principal}
+
+\subsection{Conexión con Neo4j}
+
+La clase \texttt{BaseDatos} lee \texttt{config.ini}, crea el driver de Neo4j y ofrece tres métodos: \texttt{consultar} para lecturas, \texttt{ejecutar} para escrituras y \texttt{transaccion} para varias sentencias que deben aplicarse juntas. Los valores siempre se envían como parámetros (\texttt{\$id}, \texttt{\$name}), nunca pegados al texto de la consulta, y los tipos de Neo4j como \texttt{date} se convierten a texto para mostrarlos.
+
+\codigo{pyStyle}{../app/conexion.py}
+
+\subsection{Componentes comunes de la interfaz}
+
+Todas las pestañas de administración tienen la misma distribución: a la izquierda una tabla con los registros y a la derecha un formulario con los botones Nuevo, Guardar y Eliminar. Esa distribución está en la clase \texttt{PestanaCRUD}; cada pestaña hereda de ella y solo define sus columnas, sus campos y el Cypher de cada operación. Para las relaciones hay dos controles: \texttt{Selector}, una lista desplegable para elegir un nodo (por ejemplo, el autor), y \texttt{ListaMultiple}, para elegir varios (por ejemplo, los tags).
+
+\codigo{pyStyle}{../app/ui_comun.py}
+
+\subsection{Ventana principal}
+
+\texttt{main.py} se conecta a la base, muestra la versión del servidor en el encabezado y agrega una pestaña por cada módulo. Al cambiar de pestaña se recargan sus datos, porque otra pestaña pudo haber creado o eliminado nodos relacionados.
+
+\codigo{pyStyle}{../app/main.py}
+
+% ============================================================
+\section{Usuarios}
+
+\codigo{pyStyle}{../app/usuarios.py}
+
+La tabla muestra cuántos artículos y comentarios tiene cada usuario con \texttt{COUNT \{ \}}, que cuenta los patrones de relaciones de cada nodo sin agruparlos.
+
+\captura{05-app-usuarios.png}{Pestaña Usuarios.}{1.0}
+
+\captura{06-usuario-crear.png}{Creación de un usuario.}{1.0}
+
+\captura{07-usuario-editar.png}{Modificación de un usuario.}{1.0}
+
+\captura{08-usuario-email-repetido.png}{Intento de crear un usuario con un email repetido.}{1.0}
+
+La restricción \texttt{user\_email} impide que dos usuarios tengan el mismo email; Neo4j rechaza la escritura y la aplicación muestra el error.
+
+\captura{09-usuario-eliminar-bloqueado.png}{Intento de eliminar un usuario con artículos y comentarios.}{1.0}
+
+\captura{10-usuario-eliminar.png}{Eliminación de un usuario.}{1.0}
+
+Las mismas operaciones, escritas en Cypher con un usuario de prueba:
+
+\codigo{cypherStyle}{../cypher/03_usuarios.cypher}
+
+\captura{11-cypher-03.png}{Ejecución de las operaciones de usuarios en Cypher.}{1.0}
+
+% ============================================================
+\section{Artículos y comentarios}
+
+\subsection{Artículos}
+
+\codigo{pyStyle}{../app/articulos.py}
+
+\pendiente{descripción de la pestaña Artículos.}
+
+\captura{20-articulos-lista.png}{Pestaña Artículos.}{1.0}
+\captura{21-articulo-crear.png}{Creación de un artículo con autor, tags y categoría.}{1.0}
+\captura{22-articulo-editar.png}{Modificación de los tags y categorías de un artículo.}{1.0}
+
+\subsection{Comentarios}
+
+\codigo{pyStyle}{../app/comentarios.py}
+
+\pendiente{descripción de la pestaña Comentarios.}
+
+\captura{23-comentarios-lista.png}{Pestaña Comentarios.}{1.0}
+\captura{24-comentario-crear.png}{Creación de un comentario.}{1.0}
+\captura{25-comentario-editar.png}{Modificación de un comentario.}{1.0}
+\captura{26-articulo-con-comentario.png}{Artículo con su nuevo comentario.}{1.0}
+\captura{27-comentario-eliminar.png}{Eliminación de un comentario.}{1.0}
+\captura{28-articulo-eliminar.png}{Eliminación de un artículo.}{1.0}
+
+\subsection{Operaciones en Cypher}
+
+\codigo{cypherStyle}{../cypher/04_articulos_comentarios.cypher}
+
+\captura{29-cypher-04.png}{Ejecución de las operaciones de artículos y comentarios en Cypher.}{1.0}
+\captura{30-grafo-articulo.png}{Un artículo con su autor, tags, categorías y comentarios.}{1.0}
+
+% ============================================================
+\section{Tags y categorías}
+
+\subsection{Tags}
+
+\codigo{pyStyle}{../app/tags.py}
+
+\pendiente{descripción de la pestaña Tags.}
+
+\captura{40-tags-lista.png}{Pestaña Tags.}{1.0}
+\captura{41-tag-crear.png}{Creación de un tag.}{1.0}
+\captura{42-tag-editar.png}{Modificación de un tag.}{1.0}
+\captura{43-tag-repetido.png}{Intento de crear un tag repetido.}{1.0}
+\captura{44-tag-eliminar.png}{Eliminación de un tag.}{1.0}
+
+\subsection{Categorías}
+
+\codigo{pyStyle}{../app/categorias.py}
+
+\captura{45-categorias-lista.png}{Pestaña Categorías.}{1.0}
+\captura{46-categoria-crear.png}{Creación de una categoría.}{1.0}
+\captura{47-categoria-editar.png}{Modificación de una categoría.}{1.0}
+\captura{48-categoria-eliminar.png}{Eliminación de una categoría.}{1.0}
+
+\subsection{Operaciones en Cypher}
+
+\codigo{cypherStyle}{../cypher/05_tags_categorias.cypher}
+
+\captura{57-cypher-05.png}{Ejecución de las operaciones de tags y categorías en Cypher.}{1.0}
+
+% ============================================================
+\section{Consultas sobre el grafo}
+
+\codigo{pyStyle}{../app/consultas.py}
+
+\pendiente{descripción de cada consulta y su resultado.}
+
+\captura{49-consulta-1.png}{Artículos por categoría.}{1.0}
+\captura{50-consulta-2.png}{Tags más usados.}{1.0}
+\captura{51-consulta-3.png}{Artículos más comentados.}{1.0}
+\captura{52-consulta-4.png}{Actividad de cada usuario.}{1.0}
+\captura{53-consulta-5.png}{Artículos de un tag.}{1.0}
+\captura{54-consulta-6.png}{Artículos relacionados por tags.}{1.0}
+\captura{55-consulta-7.png}{Quién comenta a quién.}{1.0}
+\captura{56-consulta-8.png}{Artículos sin comentarios.}{1.0}
+
+\codigo{cypherStyle}{../cypher/06_consultas.cypher}
+
+\captura{58-cypher-06.png}{Ejecución de las consultas en Cypher.}{1.0}
+\captura{59-grafo-tags.png}{Artículos y sus tags.}{1.0}
+
+% ============================================================
+\section{Conclusión}
+
+\pendiente{conclusión del proyecto.}
+
+% ============================================================
+\section*{Referencias}
+\addcontentsline{toc}{section}{Referencias}
+
+\begin{list}{}{%
+    \setlength{\leftmargin}{1.27cm}
+    \setlength{\itemindent}{-1.27cm}
+    \setlength{\itemsep}{6pt}
+    \setlength{\parsep}{0pt}}
+\item Neo4j, Inc. (s.f.). \textit{Cypher Manual}. \url{https://neo4j.com/docs/cypher-manual/current/}
+\item Neo4j, Inc. (s.f.). \textit{Neo4j Python Driver Manual}. \url{https://neo4j.com/docs/python-manual/current/}
+\item Python Software Foundation. (s.f.). \textit{tkinter — Python interface to Tcl/Tk}. \url{https://docs.python.org/3/library/tkinter.html}
+\end{list}
+
+\end{document}
