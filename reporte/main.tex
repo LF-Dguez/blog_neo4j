@@ -368,7 +368,19 @@ Las mismas operaciones, escritas en Cypher con un usuario de prueba:
 
 \codigo{pyStyle}{../app/articulos.py}
 
-\pendiente{descripción de la pestaña Artículos.}
+La pestaña Artículos administra los nodos \texttt{:Article} y, además de sus propiedades, las tres relaciones que salen o llegan a un artículo: el autor (\texttt{WROTE}), los tags (\texttt{TAGGED\_WITH}) y las categorías (\texttt{IN\_CATEGORY}). El autor se elige con un \texttt{Selector}, porque un artículo tiene un solo autor, y los tags y las categorías con dos \texttt{ListaMultiple}, porque un artículo puede tener varios.
+
+Para llenar la tabla, \texttt{listar()} usa \textit{pattern comprehensions}, que recorren las relaciones de cada artículo y regresan una lista; por ejemplo, la de los nombres de sus tags:
+
+\begin{lstlisting}[style=cypherStyle]
+[(a)-[:TAGGED_WITH]->(t:Tag) | t.name] AS tags
+\end{lstlisting}
+
+\noindent Si se usara un \texttt{MATCH} por cada relación, cada artículo aparecería repetido una vez por cada combinación de tag y categoría. El número de comentarios se obtiene con \texttt{COUNT \{ \}}.
+
+Crear o modificar un artículo requiere varias sentencias: la del nodo, la de su autor y las de sus tags y categorías. Todas se ejecutan en una sola transacción con \texttt{BaseDatos.transaccion()}, de modo que si una falla no se guarda ninguna. Para actualizar los tags y las categorías se borran las relaciones anteriores y se crean las que están elegidas en el formulario, lo que cubre tanto agregar como quitar. Por esa misma razón el \texttt{id} de un artículo nuevo se genera en Python con \texttt{uuid4()}: las sentencias que crean las relaciones lo necesitan dentro de la misma transacción.
+
+Al eliminar un artículo también se eliminan sus comentarios, porque un comentario no tiene sentido sin el artículo al que pertenece; \texttt{DETACH DELETE} borra los nodos junto con todas sus relaciones.
 
 \captura{20-articulos-lista.png}{Pestaña Artículos.}{1.0}
 \captura{21-articulo-crear.png}{Creación de un artículo con autor, tags y categoría.}{1.0}
@@ -378,7 +390,11 @@ Las mismas operaciones, escritas en Cypher con un usuario de prueba:
 
 \codigo{pyStyle}{../app/comentarios.py}
 
-\pendiente{descripción de la pestaña Comentarios.}
+La pestaña Comentarios administra los nodos \texttt{:Comment}. Cada comentario se conecta con dos nodos: el usuario que lo publicó (\texttt{POSTED}) y el artículo al que pertenece (\texttt{HAS\_COMMENT}); ambos se eligen con un \texttt{Selector} y son obligatorios.
+
+La propiedad \texttt{url} no se captura en el formulario: la genera Cypher al guardar, a partir del título del artículo en minúsculas y con guiones, más los primeros ocho caracteres del \texttt{id} del comentario. Así cada comentario tiene un enlace permanente único, por ejemplo \texttt{/articulos/grafos-en-la-vida-diaria\#comentario-d6c2cc67}. Al modificar un comentario se reemplazan sus dos relaciones y se vuelve a calcular la \texttt{url}, por si se cambió de artículo.
+
+Eliminar un comentario solo borra ese nodo y sus relaciones; el usuario y el artículo se conservan. En las capturas se crea un comentario sobre el artículo de la sección anterior, se modifica, se comprueba que la columna \textit{Coment.} del artículo cambia a 1 y después se eliminan el comentario y el artículo, con lo que la base regresa a sus 8 artículos y 14 comentarios.
 
 \captura{23-comentarios-lista.png}{Pestaña Comentarios.}{1.0}
 \captura{24-comentario-crear.png}{Creación de un comentario.}{1.0}
@@ -388,6 +404,8 @@ Las mismas operaciones, escritas en Cypher con un usuario de prueba:
 \captura{28-articulo-eliminar.png}{Eliminación de un artículo.}{1.0}
 
 \subsection{Operaciones en Cypher}
+
+Las mismas operaciones se escribieron en Cypher con un artículo y un comentario de prueba. El archivo se ejecuta en orden: crea, lee y modifica el artículo, hace lo mismo con el comentario, los elimina y al final comprueba que no quedó ningún nodo de prueba.
 
 \codigo{cypherStyle}{../cypher/04_articulos_comentarios.cypher}
 
@@ -401,7 +419,9 @@ Las mismas operaciones, escritas en Cypher con un usuario de prueba:
 
 \codigo{pyStyle}{../app/tags.py}
 
-\pendiente{descripción de la pestaña Tags.}
+Tags y categorías son nodos sencillos, con nombre y url, que se conectan con los artículos mediante relaciones N a N. Por eso sus pestañas solo definen columnas, campos y el Cypher de cada operación, y el resto lo hereda de \texttt{PestanaCRUD}. La columna \textit{Artículos} cuenta con \texttt{COUNT \{ \}} cuántos artículos llegan a cada tag.
+
+El nombre de un tag no se puede repetir gracias a la restricción \texttt{tag\_name}: al intentar crear otro tag \texttt{neo4j}, Neo4j rechaza la escritura y la aplicación muestra el error. Al eliminar un tag se usa \texttt{DETACH DELETE}, que borra el nodo y sus relaciones \texttt{TAGGED\_WITH}, pero no los artículos.
 
 \captura{40-tags-lista.png}{Pestaña Tags.}{1.0}
 \captura{41-tag-crear.png}{Creación de un tag.}{1.0}
@@ -413,12 +433,16 @@ Las mismas operaciones, escritas en Cypher con un usuario de prueba:
 
 \codigo{pyStyle}{../app/categorias.py}
 
+La pestaña Categorías funciona igual que la de Tags, con la restricción \texttt{category\_\allowbreak name} para el nombre y la relación \texttt{IN\_CATEGORY}. Al eliminar una categoría, los artículos que la tenían se conservan con sus demás categorías.
+
 \captura{45-categorias-lista.png}{Pestaña Categorías.}{1.0}
 \captura{46-categoria-crear.png}{Creación de una categoría.}{1.0}
 \captura{47-categoria-editar.png}{Modificación de una categoría.}{1.0}
 \captura{48-categoria-eliminar.png}{Eliminación de una categoría.}{1.0}
 
 \subsection{Operaciones en Cypher}
+
+Las operaciones de tags y categorías en Cypher usan un tag y una categoría de prueba, que se crean, se consultan junto con el número de artículos de cada uno, se modifican y se eliminan; la última sentencia comprueba que no quedó ningún nodo de prueba.
 
 \codigo{cypherStyle}{../cypher/05_tags_categorias.cypher}
 
@@ -429,7 +453,18 @@ Las mismas operaciones, escritas en Cypher con un usuario de prueba:
 
 \codigo{pyStyle}{../app/consultas.py}
 
-\pendiente{descripción de cada consulta y su resultado.}
+La pestaña Consultas no modifica la base: reúne ocho consultas de solo lectura que recorren el grafo. Se elige una de la lista y, si necesita un parámetro (un tag o un artículo), se elige en un \texttt{Selector}; el resultado se muestra en una tabla cuyas columnas son las del \texttt{RETURN}. Estas consultas son las que muestran la ventaja de un grafo, porque siguen varias relaciones seguidas sin necesidad de \texttt{JOIN}.
+
+\begin{enumerate}[itemsep=3pt, topsep=4pt]
+    \item \textbf{Artículos por categoría.} Usa \texttt{OPTIONAL MATCH} para que aparezcan también las categorías sin artículos. Bases de Datos tiene 6 artículos, Programación 3, y Ciencia de Datos e Infraestructura 1 cada una.
+    \item \textbf{Tags más usados.} Cuenta con \texttt{COUNT \{ \}} los artículos de cada tag: neo4j aparece en 4, cypher y grafos en 3, mongodb, nosql y python en 2, y docker y sql en 1.
+    \item \textbf{Artículos más comentados.} Cada artículo con su autor y su número de comentarios. El primero es ``Introducción a las bases de datos de grafos'', con 3, y el último ``De SQL a Cypher: guía rápida'', con 0.
+    \item \textbf{Actividad de cada usuario.} Artículos escritos y comentarios publicados por cada usuario, ordenados por la suma de ambos; por ejemplo, Ana Torres tiene 2 artículos y 3 comentarios, y Carlos Méndez 1 artículo y 4 comentarios.
+    \item \textbf{Artículos de un tag.} Recibe el tag como parámetro. Con \texttt{neo4j} regresa 4 artículos, del más reciente (``Conectar Python con Neo4j'') al más antiguo.
+    \item \textbf{Artículos relacionados.} A partir de un artículo recorre el patrón artículo--tag--artículo para encontrar los que comparten tags, y cuenta cuántos tienen en común. Para ``Introducción a las bases de datos de grafos'', el más relacionado es ``MongoDB vs Neo4j: cuándo usar cada uno'', con 2 tags en común, y otros cuatro artículos comparten uno.
+    \item \textbf{Quién comenta a quién.} Recorre usuario--comentario--artículo--autor y descarta a quien comenta su propio artículo con \texttt{WHERE lector <> autor}. Regresa 12 pares; los más frecuentes son Carlos Méndez comentando a Ana Torres y a Sofía Chávez, 2 veces cada uno.
+    \item \textbf{Artículos sin comentarios.} Usa \texttt{WHERE NOT EXISTS \{ \}} para quedarse con los artículos que no tienen ninguna relación \texttt{HAS\_COMMENT}. Solo ``De SQL a Cypher: guía rápida'', de Luis Ramírez, cumple la condición.
+\end{enumerate}
 
 \captura{49-consulta-1.png}{Artículos por categoría.}{1.0}
 \captura{50-consulta-2.png}{Tags más usados.}{1.0}
@@ -440,15 +475,22 @@ Las mismas operaciones, escritas en Cypher con un usuario de prueba:
 \captura{55-consulta-7.png}{Quién comenta a quién.}{1.0}
 \captura{56-consulta-8.png}{Artículos sin comentarios.}{1.0}
 
+Las mismas consultas están en \texttt{06\_consultas.cypher} para ejecutarlas fuera de la aplicación; en lugar del parámetro usan valores de ejemplo (el tag \texttt{neo4j} y el artículo ``Introducción a las bases de datos de grafos'').
+
 \codigo{cypherStyle}{../cypher/06_consultas.cypher}
 
-\captura{58-cypher-06.png}{Ejecución de las consultas en Cypher.}{1.0}
+\captura{58a-cypher-06.png}{Ejecución de las consultas en Cypher (primera parte).}{1.0}
+\captura{58b-cypher-06.png}{Ejecución de las consultas en Cypher (segunda parte).}{1.0}
 \captura{59-grafo-tags.png}{Artículos y sus tags.}{1.0}
 
 % ============================================================
 \section{Conclusión}
 
-\pendiente{conclusión del proyecto.}
+Se desarrolló una aplicación en Python que administra un blog guardado en Neo4j, con el modelo de usuarios, artículos, comentarios, tags y categorías indicado en la actividad. Cada tipo de nodo tiene su pestaña con altas, consultas, modificaciones y bajas, incluidas sus relaciones, y una pestaña adicional reúne consultas que recorren el grafo.
+
+El proyecto mostró las diferencias de trabajar con una base de datos de grafos frente a las bases de documentos de las actividades anteriores. Las relaciones son datos de primera clase: una relación N a N, como la de artículos y tags, no necesita una tabla o colección intermedia, y consultas como ``artículos relacionados'' o ``quién comenta a quién'' se escriben como un patrón que sigue varias relaciones, en lugar de varios \texttt{JOIN} o \textit{lookups}. Las restricciones de unicidad mantuvieron la integridad de los datos, las transacciones permitieron guardar un nodo junto con todas sus relaciones de forma atómica, y el uso de parámetros en todo el Cypher evitó armar consultas pegando texto.
+
+Las capturas muestran que cada operación deja la base en el estado esperado: los conteos de nodos y relaciones regresan a sus valores iniciales después de crear y eliminar los registros de prueba, tanto desde la aplicación como desde los archivos Cypher.
 
 % ============================================================
 \section*{Referencias}
