@@ -10,6 +10,7 @@ arriba de una sentencia se muestra como su titulo. Las sentencias se
 ejecutan en orden; de cada una se muestra lo que cambio en la base y, si
 tiene RETURN, sus primeras filas.
 """
+import re
 import sys
 from pathlib import Path
 
@@ -29,7 +30,7 @@ def sentencias(ruta):
         limpia = linea.strip()
         if not actual:
             if limpia.startswith("//"):
-                comentario.append(limpia.lstrip("/ ").strip())
+                comentario.append(re.sub(r"^\d+\.\s*", "", limpia.lstrip("/ ").strip()))
                 continue
             if not limpia:
                 comentario = []      # una linea vacia separa el comentario
